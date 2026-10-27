@@ -1,0 +1,5 @@
+{"fetched_at": "2026-10-27T00:00:00+00:00", "markets": [
+ {"ticker": "CONTROLH-2026-D", "yes_bid_dollars": "0.9080", "yes_ask_dollars": "0.9090"},
+ {"ticker": "CONTROLS-2026-D", "yes_bid_dollars": "0.6400", "yes_ask_dollars": null},
+ {"ticker": "KXBALANCEPOWERCOMBO-27FEB-DD", "yes_bid_dollars": "", "yes_ask_dollars": "0.6200"}
+]}
