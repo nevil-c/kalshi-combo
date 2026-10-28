@@ -33,11 +33,16 @@ python calibrate.py [--weighted]            # latest rho + per-cell residuals
 python -m pytest -q
 ```
 
-Hourly via Task Scheduler instead of `--loop`:
+Hourly collection runs as the Task Scheduler job `KalshiComboCollector`
+(`pythonw.exe collector.py`, on the hour, through 2026-11-05, catching up
+after sleep; only while you're logged on). Check or remove it with:
 
 ```
-schtasks /Create /SC HOURLY /TN KalshiCollector /TR "\"%USERPROFILE%\.venvs\kalshi-combo\Scripts\python.exe\" \"<project>\collector.py\""
+Get-ScheduledTaskInfo KalshiComboCollector
+Unregister-ScheduledTask KalshiComboCollector -Confirm:$false
 ```
+
+A missed hour shows up as a gap in `data/` and a non-zero `LastTaskResult`.
 
 ## Model notes
 
