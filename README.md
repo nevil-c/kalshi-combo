@@ -59,6 +59,17 @@ A missed hour shows up as a gap in `data/` and a non-zero `LastTaskResult`.
 
 ## Freezing prices (by Nov 1)
 
+The one-time Task Scheduler job `KalshiComboFreeze` runs `freeze.ps1` at
+2026-11-01 23:30 local (or as soon as the PC wakes after that). It commits
+everything in `data/` and creates the annotated tag `prices-frozen-2026-11-01`,
+and refuses to run if that tag already exists. Output goes to `freeze.log`.
+
+Check it afterwards with `git tag -n1` or `Get-Content freeze.log`; run it by
+hand with:
+
 ```
-git add data && git commit -m "Freeze Kalshi snapshots" && git tag prices-frozen-2026-11-01
+powershell -ExecutionPolicy Bypass -File freeze.ps1 -Name <name> -Email <email>
 ```
+
+The collector keeps adding snapshots after the freeze; the tag marks the
+frozen set.
