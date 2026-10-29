@@ -61,11 +61,13 @@ A missed hour shows up as a gap in `data/` and a non-zero `LastTaskResult`.
 
 The one-time Task Scheduler job `KalshiComboFreeze` runs `freeze.ps1` at
 2026-11-01 23:30 local (or as soon as the PC wakes after that). It commits
-everything in `data/` and creates the annotated tag `prices-frozen-2026-11-01`,
-and refuses to run if that tag already exists. Output goes to `freeze.log`.
+everything in `data/`, creates the annotated tag `prices-frozen-2026-11-01`,
+and pushes `main` and the tag to GitHub (`origin`). If the tag already exists
+(for example, the push failed because the PC was offline), it skips straight to
+retrying the push. Output goes to `freeze.log`.
 
-Check it afterwards with `git tag -n1` or `Get-Content freeze.log`; run it by
-hand with:
+Check it afterwards with `git tag -n1`, `git ls-remote --tags origin`, or
+`Get-Content freeze.log`; run it (or retry the push) by hand with:
 
 ```
 powershell -ExecutionPolicy Bypass -File freeze.ps1 -Name <name> -Email <email>
