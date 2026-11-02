@@ -1,0 +1,491 @@
+{
+ "fetched_at": "2026-10-29T23:00:01.692351+00:00",
+ "markets": [
+  {
+   "can_close_early": true,
+   "close_time": "2027-02-01T15:00:00Z",
+   "created_time": "2025-12-10T20:42:08.906036Z",
+   "custom_strike": {
+    "Combo": "Republican + Republican"
+   },
+   "early_close_condition": "This market will close and expire early if any component becomes impossible to occur (resolving to No) or all components have been satisfied (resolving to Yes).",
+   "event_ticker": "KXBALANCEPOWERCOMBO-27FEB",
+   "exchange_index": 0,
+   "expected_expiration_time": "2027-02-01T15:00:00Z",
+   "expiration_time": "2027-02-08T15:00:00Z",
+   "expiration_value": "",
+   "last_price_dollars": "0.0830",
+   "latest_expiration_time": "2027-02-08T15:00:00Z",
+   "market_type": "binary",
+   "no_ask_dollars": "0.9180",
+   "no_bid_dollars": "0.9170",
+   "no_sub_title": "Republicans sweep",
+   "notional_value_dollars": "1.0000",
+   "open_interest_fp": "21695927.93",
+   "open_time": "2025-12-11T15:00:00Z",
+   "previous_price_dollars": "0.0880",
+   "previous_yes_ask_dollars": "0.0880",
+   "previous_yes_bid_dollars": "0.0870",
+   "price_level_structure": "tapered_deci_cent",
+   "price_ranges": [
+    {
+     "end": "0.1000",
+     "start": "0.0000",
+     "step": "0.0010"
+    },
+    {
+     "end": "0.9000",
+     "start": "0.1000",
+     "step": "0.0100"
+    },
+    {
+     "end": "1.0000",
+     "start": "0.9000",
+     "step": "0.0010"
+    }
+   ],
+   "result": "",
+   "rules_primary": "If ALL of the following occur: House Control: Republican, Senate Control: Republican, then the market resolves to Yes.",
+   "rules_secondary": "This is a combination market requiring ALL specified outcomes to occur for the contract to pay out. If ANY single component resolves to No or becomes impossible, the entire contract immediately resolves to No. Each component is resolved according to its corresponding Kalshi ruleset: House Control uses CONTROL, Senate Control uses CONTROL. Each CONTROL component may resolve on an accelerated basis as outlined in the full rules.",
+   "settlement_bounds_type": "default",
+   "settlement_timer_seconds": 1800,
+   "status": "active",
+   "strike_type": "custom",
+   "ticker": "KXBALANCEPOWERCOMBO-27FEB-RR",
+   "title": "Will House Control be Republican AND Senate Control be Republican for Feb 2027?",
+   "updated_time": "2026-09-22T20:30:44.962514Z",
+   "volume_24h_fp": "787702.83",
+   "volume_fp": "26515096.54",
+   "yes_ask_dollars": "0.0830",
+   "yes_ask_size_fp": "242598.52",
+   "yes_bid_dollars": "0.0820",
+   "yes_bid_size_fp": "6783.22",
+   "yes_sub_title": "Republicans sweep"
+  },
+  {
+   "can_close_early": true,
+   "close_time": "2027-02-01T15:00:00Z",
+   "created_time": "2025-12-10T20:42:08.906036Z",
+   "custom_strike": {
+    "Combo": "Republican + Democratic"
+   },
+   "early_close_condition": "This market will close and expire early if any component becomes impossible to occur (resolving to No) or all components have been satisfied (resolving to Yes).",
+   "event_ticker": "KXBALANCEPOWERCOMBO-27FEB",
+   "exchange_index": 0,
+   "expected_expiration_time": "2027-02-01T15:00:00Z",
+   "expiration_time": "2027-02-08T15:00:00Z",
+   "expiration_value": "",
+   "last_price_dollars": "0.0060",
+   "latest_expiration_time": "2027-02-08T15:00:00Z",
+   "market_type": "binary",
+   "no_ask_dollars": "0.9940",
+   "no_bid_dollars": "0.9920",
+   "no_sub_title": "R-House, D-Senate",
+   "notional_value_dollars": "1.0000",
+   "open_interest_fp": "17580192.25",
+   "open_time": "2025-12-11T15:00:00Z",
+   "previous_price_dollars": "0.0080",
+   "previous_yes_ask_dollars": "0.0080",
+   "previous_yes_bid_dollars": "0.0070",
+   "price_level_structure": "tapered_deci_cent",
+   "price_ranges": [
+    {
+     "end": "0.1000",
+     "start": "0.0000",
+     "step": "0.0010"
+    },
+    {
+     "end": "0.9000",
+     "start": "0.1000",
+     "step": "0.0100"
+    },
+    {
+     "end": "1.0000",
+     "start": "0.9000",
+     "step": "0.0010"
+    }
+   ],
+   "result": "",
+   "rules_primary": "If ALL of the following occur: House Control: Republican, Senate Control: Democratic, then the market resolves to Yes.",
+   "rules_secondary": "This is a combination market requiring ALL specified outcomes to occur for the contract to pay out. If ANY single component resolves to No or becomes impossible, the entire contract immediately resolves to No. Each component is resolved according to its corresponding Kalshi ruleset: House Control uses CONTROL, Senate Control uses CONTROL. Each CONTROL component may resolve on an accelerated basis as outlined in the full rules.",
+   "settlement_bounds_type": "default",
+   "settlement_timer_seconds": 1800,
+   "status": "active",
+   "strike_type": "custom",
+   "ticker": "KXBALANCEPOWERCOMBO-27FEB-RD",
+   "title": "Will House Control be Republican AND Senate Control be Democratic for Feb 2027?",
+   "updated_time": "2026-09-22T20:30:44.962514Z",
+   "volume_24h_fp": "2073308.39",
+   "volume_fp": "22803634.79",
+   "yes_ask_dollars": "0.0080",
+   "yes_ask_size_fp": "392783.00",
+   "yes_bid_dollars": "0.0060",
+   "yes_bid_size_fp": "322337.94",
+   "yes_sub_title": "R-House, D-Senate"
+  },
+  {
+   "can_close_early": true,
+   "close_time": "2027-02-01T15:00:00Z",
+   "created_time": "2025-12-10T20:42:08.906036Z",
+   "custom_strike": {
+    "Combo": "Democratic + Republican"
+   },
+   "early_close_condition": "This market will close and expire early if any component becomes impossible to occur (resolving to No) or all components have been satisfied (resolving to Yes).",
+   "event_ticker": "KXBALANCEPOWERCOMBO-27FEB",
+   "exchange_index": 0,
+   "expected_expiration_time": "2027-02-01T15:00:00Z",
+   "expiration_time": "2027-02-08T15:00:00Z",
+   "expiration_value": "",
+   "last_price_dollars": "0.2900",
+   "latest_expiration_time": "2027-02-08T15:00:00Z",
+   "market_type": "binary",
+   "no_ask_dollars": "0.7200",
+   "no_bid_dollars": "0.7100",
+   "no_sub_title": "D-House, R-Senate",
+   "notional_value_dollars": "1.0000",
+   "open_interest_fp": "5041304.91",
+   "open_time": "2025-12-11T15:00:00Z",
+   "previous_price_dollars": "0.2900",
+   "previous_yes_ask_dollars": "0.2900",
+   "previous_yes_bid_dollars": "0.2800",
+   "price_level_structure": "tapered_deci_cent",
+   "price_ranges": [
+    {
+     "end": "0.1000",
+     "start": "0.0000",
+     "step": "0.0010"
+    },
+    {
+     "end": "0.9000",
+     "start": "0.1000",
+     "step": "0.0100"
+    },
+    {
+     "end": "1.0000",
+     "start": "0.9000",
+     "step": "0.0010"
+    }
+   ],
+   "result": "",
+   "rules_primary": "If ALL of the following occur: House Control: Democratic, Senate Control: Republican, then the market resolves to Yes.",
+   "rules_secondary": "This is a combination market requiring ALL specified outcomes to occur for the contract to pay out. If ANY single component resolves to No or becomes impossible, the entire contract immediately resolves to No. Each component is resolved according to its corresponding Kalshi ruleset: House Control uses CONTROL, Senate Control uses CONTROL. Each CONTROL component may resolve on an accelerated basis as outlined in the full rules.",
+   "settlement_bounds_type": "default",
+   "settlement_timer_seconds": 1800,
+   "status": "active",
+   "strike_type": "custom",
+   "subtitle": "D-House, R-Senate",
+   "ticker": "KXBALANCEPOWERCOMBO-27FEB-DR",
+   "title": "Will House Control be Democratic AND Senate Control be Republican for Feb 2027?",
+   "updated_time": "2026-09-22T20:30:44.962514Z",
+   "volume_24h_fp": "907875.40",
+   "volume_fp": "7607164.72",
+   "yes_ask_dollars": "0.2900",
+   "yes_ask_size_fp": "300397.02",
+   "yes_bid_dollars": "0.2800",
+   "yes_bid_size_fp": "282912.06",
+   "yes_sub_title": "D-House, R-Senate"
+  },
+  {
+   "can_close_early": true,
+   "close_time": "2027-02-01T15:00:00Z",
+   "created_time": "2025-12-10T20:42:08.906036Z",
+   "custom_strike": {
+    "Combo": "Democratic + Democratic"
+   },
+   "early_close_condition": "This market will close and expire early if any component becomes impossible to occur (resolving to No) or all components have been satisfied (resolving to Yes).",
+   "event_ticker": "KXBALANCEPOWERCOMBO-27FEB",
+   "exchange_index": 0,
+   "expected_expiration_time": "2027-02-01T15:00:00Z",
+   "expiration_time": "2027-02-08T15:00:00Z",
+   "expiration_value": "",
+   "last_price_dollars": "0.6600",
+   "latest_expiration_time": "2027-02-08T15:00:00Z",
+   "market_type": "binary",
+   "no_ask_dollars": "0.3500",
+   "no_bid_dollars": "0.3400",
+   "no_sub_title": "Democrats sweep",
+   "notional_value_dollars": "1.0000",
+   "open_interest_fp": "6706046.93",
+   "open_time": "2025-12-11T15:00:00Z",
+   "previous_price_dollars": "0.6400",
+   "previous_yes_ask_dollars": "0.6400",
+   "previous_yes_bid_dollars": "0.6300",
+   "price_level_structure": "tapered_deci_cent",
+   "price_ranges": [
+    {
+     "end": "0.1000",
+     "start": "0.0000",
+     "step": "0.0010"
+    },
+    {
+     "end": "0.9000",
+     "start": "0.1000",
+     "step": "0.0100"
+    },
+    {
+     "end": "1.0000",
+     "start": "0.9000",
+     "step": "0.0010"
+    }
+   ],
+   "result": "",
+   "rules_primary": "If ALL of the following occur: House Control: Democratic, Senate Control: Democratic, then the market resolves to Yes.",
+   "rules_secondary": "This is a combination market requiring ALL specified outcomes to occur for the contract to pay out. If ANY single component resolves to No or becomes impossible, the entire contract immediately resolves to No. Each component is resolved according to its corresponding Kalshi ruleset: House Control uses CONTROL, Senate Control uses CONTROL. Each CONTROL component may resolve on an accelerated basis as outlined in the full rules.",
+   "settlement_bounds_type": "default",
+   "settlement_timer_seconds": 1800,
+   "status": "active",
+   "strike_type": "custom",
+   "subtitle": "D-House, D-Senate",
+   "ticker": "KXBALANCEPOWERCOMBO-27FEB-DD",
+   "title": "Will House Control be Democratic AND Senate Control be Democratic for Feb 2027?",
+   "updated_time": "2026-09-22T20:30:44.962514Z",
+   "volume_24h_fp": "546935.35",
+   "volume_fp": "9583734.07",
+   "yes_ask_dollars": "0.6600",
+   "yes_ask_size_fp": "428371.01",
+   "yes_bid_dollars": "0.6500",
+   "yes_bid_size_fp": "358445.94",
+   "yes_sub_title": "Democrats sweep"
+  },
+  {
+   "can_close_early": true,
+   "close_time": "2027-02-01T15:00:00Z",
+   "created_time": "2024-11-06T07:18:26.141672Z",
+   "custom_strike": {
+    "politician": "9244ed4c-9dfd-45cc-8211-996dc902f315"
+   },
+   "event_ticker": "CONTROLH-2026",
+   "exchange_index": 0,
+   "expected_expiration_time": "2027-02-01T15:00:00Z",
+   "expiration_time": "2027-02-01T15:00:00Z",
+   "expiration_value": "",
+   "last_price_dollars": "0.0830",
+   "latest_expiration_time": "2027-02-01T15:00:00Z",
+   "market_type": "binary",
+   "no_ask_dollars": "0.9180",
+   "no_bid_dollars": "0.9170",
+   "no_sub_title": "Republican Party",
+   "notional_value_dollars": "1.0000",
+   "open_interest_fp": "42609784.26",
+   "open_time": "2024-11-06T15:00:00Z",
+   "previous_price_dollars": "0.0920",
+   "previous_yes_ask_dollars": "0.0920",
+   "previous_yes_bid_dollars": "0.0910",
+   "price_level_structure": "tapered_deci_cent",
+   "price_ranges": [
+    {
+     "end": "0.1000",
+     "start": "0.0000",
+     "step": "0.0010"
+    },
+    {
+     "end": "0.9000",
+     "start": "0.1000",
+     "step": "0.0100"
+    },
+    {
+     "end": "1.0000",
+     "start": "0.9000",
+     "step": "0.0010"
+    }
+   ],
+   "result": "",
+   "rules_primary": "If the Republican Party has won control of the House in 2026, then the market resolves to Yes.",
+   "rules_secondary": "This market may be determined early based on a consensus of media calls projecting control of the U.S. House. See full rules for details. Otherwise, victory will be determined by the party identification of the Speaker of the House on February 1, 2027.",
+   "settlement_bounds_type": "default",
+   "settlement_timer_seconds": 3600,
+   "status": "active",
+   "strike_type": "structured",
+   "ticker": "CONTROLH-2026-R",
+   "title": "Will Republicans win the House in 2026?",
+   "updated_time": "2026-10-28T22:25:31.727114Z",
+   "volume_24h_fp": "2566305.33",
+   "volume_fp": "56658914.05",
+   "yes_ask_dollars": "0.0830",
+   "yes_ask_size_fp": "3930.47",
+   "yes_bid_dollars": "0.0820",
+   "yes_bid_size_fp": "29794.02",
+   "yes_sub_title": "Republican Party"
+  },
+  {
+   "can_close_early": true,
+   "close_time": "2027-02-01T15:00:00Z",
+   "created_time": "2024-11-06T07:18:26.141671Z",
+   "custom_strike": {
+    "politician": "57fa2293-3102-463b-9087-68cd9f6da0a6"
+   },
+   "event_ticker": "CONTROLH-2026",
+   "exchange_index": 0,
+   "expected_expiration_time": "2027-02-01T15:00:00Z",
+   "expiration_time": "2027-02-01T15:00:00Z",
+   "expiration_value": "",
+   "last_price_dollars": "0.9180",
+   "latest_expiration_time": "2027-02-01T15:00:00Z",
+   "market_type": "binary",
+   "no_ask_dollars": "0.0830",
+   "no_bid_dollars": "0.0820",
+   "no_sub_title": "Democratic Party",
+   "notional_value_dollars": "1.0000",
+   "open_interest_fp": "16290180.45",
+   "open_time": "2024-11-06T15:00:00Z",
+   "previous_price_dollars": "0.9110",
+   "previous_yes_ask_dollars": "0.9110",
+   "previous_yes_bid_dollars": "0.9100",
+   "price_level_structure": "tapered_deci_cent",
+   "price_ranges": [
+    {
+     "end": "0.1000",
+     "start": "0.0000",
+     "step": "0.0010"
+    },
+    {
+     "end": "0.9000",
+     "start": "0.1000",
+     "step": "0.0100"
+    },
+    {
+     "end": "1.0000",
+     "start": "0.9000",
+     "step": "0.0010"
+    }
+   ],
+   "result": "",
+   "rules_primary": "If the Democratic Party has won control of the House in 2026, then the market resolves to Yes.",
+   "rules_secondary": "This market may be determined early based on a consensus of media calls projecting control of the U.S. House. See full rules for details. Otherwise, victory will be determined by the party identification of the Speaker of the House on February 1, 2027.",
+   "settlement_bounds_type": "default",
+   "settlement_timer_seconds": 3600,
+   "status": "active",
+   "strike_type": "structured",
+   "ticker": "CONTROLH-2026-D",
+   "title": "Will Democrats win the House in 2026?",
+   "updated_time": "2026-10-28T22:25:31.727114Z",
+   "volume_24h_fp": "508293.00",
+   "volume_fp": "24180308.61",
+   "yes_ask_dollars": "0.9180",
+   "yes_ask_size_fp": "1884.07",
+   "yes_bid_dollars": "0.9170",
+   "yes_bid_size_fp": "45212.37",
+   "yes_sub_title": "Democratic Party"
+  },
+  {
+   "can_close_early": true,
+   "close_time": "2027-02-01T15:00:00Z",
+   "created_time": "2024-11-06T07:16:46.657924Z",
+   "custom_strike": {
+    "politician": "57fa2293-3102-463b-9087-68cd9f6da0a6"
+   },
+   "event_ticker": "CONTROLS-2026",
+   "exchange_index": 0,
+   "expected_expiration_time": "2027-02-01T15:00:00Z",
+   "expiration_time": "2027-02-01T15:00:00Z",
+   "expiration_value": "",
+   "last_price_dollars": "0.6800",
+   "latest_expiration_time": "2027-02-01T15:00:00Z",
+   "market_type": "binary",
+   "no_ask_dollars": "0.3300",
+   "no_bid_dollars": "0.3200",
+   "no_sub_title": "Democratic Party",
+   "notional_value_dollars": "1.0000",
+   "open_interest_fp": "5111517.27",
+   "open_time": "2024-11-06T15:00:00Z",
+   "previous_price_dollars": "0.6500",
+   "previous_yes_ask_dollars": "0.6500",
+   "previous_yes_bid_dollars": "0.6400",
+   "price_level_structure": "tapered_deci_cent",
+   "price_ranges": [
+    {
+     "end": "0.1000",
+     "start": "0.0000",
+     "step": "0.0010"
+    },
+    {
+     "end": "0.9000",
+     "start": "0.1000",
+     "step": "0.0100"
+    },
+    {
+     "end": "1.0000",
+     "start": "0.9000",
+     "step": "0.0010"
+    }
+   ],
+   "result": "",
+   "rules_primary": "If the Democratic Party has won control of the U.S. Senate in 2026, then the market resolves to Yes.",
+   "rules_secondary": "This market may be determined early based on a consensus of media calls projecting control of the U.S. Senate. See full rules for details. Otherwise, victory will be determined by the party identification of the President pro tempore of the Senate on February 1, 2027.",
+   "settlement_bounds_type": "default",
+   "settlement_timer_seconds": 3600,
+   "status": "active",
+   "strike_type": "structured",
+   "ticker": "CONTROLS-2026-D",
+   "title": "Will Democrats win the U.S. Senate in 2026?",
+   "updated_time": "2026-10-28T22:25:08.836821Z",
+   "volume_24h_fp": "302614.81",
+   "volume_fp": "9133252.09",
+   "yes_ask_dollars": "0.6800",
+   "yes_ask_size_fp": "157416.32",
+   "yes_bid_dollars": "0.6700",
+   "yes_bid_size_fp": "82049.46",
+   "yes_sub_title": "Democratic Party"
+  },
+  {
+   "can_close_early": true,
+   "close_time": "2027-02-01T15:00:00Z",
+   "created_time": "2024-11-06T07:16:46.657924Z",
+   "custom_strike": {
+    "politician": "9244ed4c-9dfd-45cc-8211-996dc902f315"
+   },
+   "event_ticker": "CONTROLS-2026",
+   "exchange_index": 0,
+   "expected_expiration_time": "2027-02-01T15:00:00Z",
+   "expiration_time": "2027-02-01T15:00:00Z",
+   "expiration_value": "",
+   "last_price_dollars": "0.3300",
+   "latest_expiration_time": "2027-02-01T15:00:00Z",
+   "market_type": "binary",
+   "no_ask_dollars": "0.6800",
+   "no_bid_dollars": "0.6700",
+   "no_sub_title": "Republican Party",
+   "notional_value_dollars": "1.0000",
+   "open_interest_fp": "8496202.83",
+   "open_time": "2024-11-06T15:00:00Z",
+   "previous_price_dollars": "0.3600",
+   "previous_yes_ask_dollars": "0.3600",
+   "previous_yes_bid_dollars": "0.3500",
+   "price_level_structure": "tapered_deci_cent",
+   "price_ranges": [
+    {
+     "end": "0.1000",
+     "start": "0.0000",
+     "step": "0.0010"
+    },
+    {
+     "end": "0.9000",
+     "start": "0.1000",
+     "step": "0.0100"
+    },
+    {
+     "end": "1.0000",
+     "start": "0.9000",
+     "step": "0.0010"
+    }
+   ],
+   "result": "",
+   "rules_primary": "If the Republican Party has won control of the U.S. Senate in 2026, then the market resolves to Yes.",
+   "rules_secondary": "This market may be determined early based on a consensus of media calls projecting control of the U.S. Senate. See full rules for details. Otherwise, victory will be determined by the party identification of the President pro tempore of the Senate on February 1, 2027.",
+   "settlement_bounds_type": "default",
+   "settlement_timer_seconds": 3600,
+   "status": "active",
+   "strike_type": "structured",
+   "ticker": "CONTROLS-2026-R",
+   "title": "Will Republicans win the U.S. Senate in 2026?",
+   "updated_time": "2026-10-28T22:25:08.836821Z",
+   "volume_24h_fp": "821661.90",
+   "volume_fp": "12922947.45",
+   "yes_ask_dollars": "0.3300",
+   "yes_ask_size_fp": "164565.20",
+   "yes_bid_dollars": "0.3200",
+   "yes_bid_size_fp": "12447.78",
+   "yes_sub_title": "Republican Party"
+  }
+ ]
+}
