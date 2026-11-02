@@ -4,8 +4,10 @@ Prices Kalshi all-legs-must-win combos with a one-factor Gaussian copula and
 backs out the rho implied by `KXBALANCEPOWERCOMBO` (House x Senate control)
 against the separate `CONTROLH-2026` / `CONTROLS-2026` markets.
 
-Market data only: every API call is an unauthenticated GET. Nothing here
-places orders or RFQs.
+Everything is read-only market data except `rfq_scan.py --send`, which
+creates combo markets and opens RFQs (signed with your API key from
+environment variables). It never accepts a quote, and it deletes every RFQ it
+opens. Nothing here places orders.
 
 | file | what |
 | --- | --- |
@@ -14,6 +16,21 @@ places orders or RFQs.
 | `compare.py` | one snapshot: Kalshi combo bid/ask/mid vs engine at the same leg prices (`--rho` or fitted) |
 | `parse.py` | `load_snapshots()` -> `ticker, time, bid, ask, mid` |
 | `collector.py` | saves `data/snapshot_*.json` |
+| `kalshi_client.py` | signed API client (key from env vars) |
+| `rfq_scan.py` | RFQ every Senate combo (`--legs 2/3`), record maker quotes vs engine in `data/rfq/` |
+| `senate_rho.py` | cross-state rho implied by Senate control; two-tier swing-group check |
+| `score.py` | after the election: Brier / log loss for engine vs maker mid, paper P&L |
+
+## Pre-registration
+
+The tag `preregistered-2026-11-02` marks the engine prices, the rho behind them
+(0.38 from Senate control for the full 2-leg scan) and the scoring rules,
+committed before polls opened. After the races resolve, only outcomes are new:
+
+```
+python score.py                         # outcomes from Kalshi settlement
+python score.py --results called.csv    # plus races called before settlement
+```
 
 ## Setup (Python 3.12)
 
