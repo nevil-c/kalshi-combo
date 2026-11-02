@@ -11,6 +11,7 @@ places orders or RFQs.
 | --- | --- |
 | `pricing.py` | `combo_prob(leg_probs, sides, rho)` |
 | `calibrate.py` | `implied_rho(...)`, `calibrate_series(df)`, CLI |
+| `compare.py` | one snapshot: Kalshi combo bid/ask/mid vs engine at the same leg prices (`--rho` or fitted) |
 | `parse.py` | `load_snapshots()` -> `ticker, time, bid, ask, mid` |
 | `collector.py` | saves `data/snapshot_*.json` |
 

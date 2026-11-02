@@ -18,18 +18,33 @@ def _dollars(value) -> float:
     return float(value)
 
 
+def _rows(path: Path) -> list[dict]:
+    snap = json.loads(path.read_text(encoding="utf-8"))
+    return [
+        {
+            "ticker": m["ticker"],
+            "time": snap["fetched_at"],
+            "bid": _dollars(m.get("yes_bid_dollars")),
+            "ask": _dollars(m.get("yes_ask_dollars")),
+        }
+        for m in snap["markets"]
+    ]
+
+
+def load_snapshot(path: str | Path) -> pd.DataFrame:
+    """A single snapshot file, same columns as load_snapshots."""
+    return _frame(_rows(Path(path)))
+
+
 def load_snapshots(data_dir: str | Path = "data") -> pd.DataFrame:
     """One row per (ticker, snapshot time): ticker, time (UTC), bid, ask, mid."""
     rows = []
     for path in sorted(Path(data_dir).glob("snapshot_*.json")):
-        snap = json.loads(path.read_text(encoding="utf-8"))
-        for m in snap["markets"]:
-            rows.append({
-                "ticker": m["ticker"],
-                "time": snap["fetched_at"],
-                "bid": _dollars(m.get("yes_bid_dollars")),
-                "ask": _dollars(m.get("yes_ask_dollars")),
-            })
+        rows.extend(_rows(path))
+    return _frame(rows)
+
+
+def _frame(rows: list[dict]) -> pd.DataFrame:
     df = pd.DataFrame(rows, columns=["ticker", "time", "bid", "ask"])
     df["time"] = pd.to_datetime(df["time"], utc=True)
     df["bid"] = df["bid"].astype(float)
