@@ -34,16 +34,9 @@ python calibrate.py [--weighted]            # latest rho + per-cell residuals
 python -m pytest -q
 ```
 
-Hourly collection runs as the Task Scheduler job `KalshiComboCollector`
-(`pythonw.exe collector.py`, on the hour, through 2026-11-05, catching up
-after sleep; only while you're logged on). Check or remove it with:
-
-```
-Get-ScheduledTaskInfo KalshiComboCollector
-Unregister-ScheduledTask KalshiComboCollector -Confirm:$false
-```
-
-A missed hour shows up as a gap in `data/` and a non-zero `LastTaskResult`.
+Snapshots are taken on demand with `python collector.py`. (An hourly Task
+Scheduler job ran from Oct 28 to Nov 2 and has been removed; `--loop` still
+works if a series is ever needed.)
 
 ## Model notes
 
