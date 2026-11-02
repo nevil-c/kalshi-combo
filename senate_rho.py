@@ -18,6 +18,12 @@ decided by the President pro tempore, so with a Republican VP Democrats need
 
     python senate_rho.py                   # fit rho to the control bid/mid/ask
     python senate_rho.py --ind-weight 1    # independents caucus with Democrats
+    python senate_rho.py --swing MI,TX,OH,ME,IA,AK,KS   # different swing group
+
+Two tiers: the swing races share one pairwise rho and every other pair another
+(lower) one. For each swing rho the CLI solves for the other rho that still
+matches the control price; "none" means no such rho exists, so control rules
+out that much swing correlation.
 """
 
 from __future__ import annotations
@@ -97,25 +103,32 @@ def load_control() -> tuple[float, float, float]:
     return bid, (_mid(d) + 1.0 - _mid(r)) / 2, ask
 
 
+def _quadrature(races: list[Race], rho: float) -> tuple[np.ndarray, np.ndarray]:
+    if rho == 0.0:
+        return np.zeros(1), np.ones(1)
+    if rho <= GH_RHO_MAX:
+        return _nodes(64)
+    return _step_nodes(np.array([1.0 - r.p_r for r in races]), rho)
+
+
+def _cond_seat_dist(races: list[Race], rho: float, m: np.ndarray, ind_weight: float) -> np.ndarray:
+    """P(k Democratic-caucus seats | factor = m), shape (len(m), len(races) + 1)."""
+    dist = np.zeros((len(m), len(races) + 1))
+    dist[:, 0] = 1.0
+    for race in races:
+        q = race.d_seat_share(ind_weight) * cond_leg_prob(1.0 - race.p_r, rho, m)
+        new = dist * (1.0 - q)[:, None]
+        new[:, 1:] += dist[:, :-1] * q[:, None]
+        dist = new
+    return dist
+
+
 def seat_distribution(races: list[Race], rho: float, ind_weight: float = 0.0) -> np.ndarray:
     """P(Democratic-caucus seats won among these races = k), k = 0..len(races)."""
     if not 0.0 <= rho < 1.0:
         raise ValueError("rho must be in [0, 1)")
-    p_non_r = np.array([1.0 - r.p_r for r in races])
-    if rho == 0.0:
-        m, w = np.zeros(1), np.ones(1)
-    elif rho <= GH_RHO_MAX:
-        m, w = _nodes(64)
-    else:
-        m, w = _step_nodes(p_non_r, rho)
-    dist = np.zeros((len(m), len(races) + 1))
-    dist[:, 0] = 1.0
-    for race, p in zip(races, p_non_r):
-        q = race.d_seat_share(ind_weight) * cond_leg_prob(p, rho, m)
-        new = dist * (1.0 - q)[:, None]
-        new[:, 1:] += dist[:, :-1] * q[:, None]
-        dist = new
-    return w @ dist
+    m, w = _quadrature(races, rho)
+    return w @ _cond_seat_dist(races, rho, m, ind_weight)
 
 
 def control_prob(races: list[Race], rho: float, ind_weight: float = 0.0,
@@ -123,6 +136,52 @@ def control_prob(races: list[Race], rho: float, ind_weight: float = 0.0,
     dist = seat_distribution(races, rho, ind_weight)
     k = max(needed - holdover_d, 0)
     return float(np.clip(dist[k:].sum(), 0.0, 1.0))
+
+
+def control_prob_two_tier(races: list[Race], swing: set[str], rho_swing: float,
+                          rho_base: float, ind_weight: float = 0.0,
+                          holdover_d: int = HOLDOVER_D, needed: int = NEEDED_D) -> float:
+    """P(control) when swing races share pairwise rho_swing and every other pair rho_base.
+
+    Swing races load on a group factor G and the rest on the national factor M,
+    with corr(G, M) = sqrt(rho_base / rho_swing). Integrates over G, then M | G.
+    """
+    if not 0.0 <= rho_base <= rho_swing < 1.0:
+        raise ValueError("need 0 <= rho_base <= rho_swing < 1")
+    if rho_base > GH_RHO_MAX:
+        raise ValueError(f"rho_base above {GH_RHO_MAX} is not supported")
+    sw = [r for r in races if r.event_ticker in swing]
+    rest = [r for r in races if r.event_ticker not in swing]
+    if rho_swing == 0.0:
+        return control_prob(races, 0.0, ind_weight, holdover_d, needed)
+    g, wg = _quadrature(sw, rho_swing)
+    d_sw = _cond_seat_dist(sw, rho_swing, g, ind_weight)
+    c = np.sqrt(rho_base / rho_swing)
+    x, wx = _nodes(32)
+    m = c * g[:, None] + np.sqrt(1.0 - c * c) * x[None, :]
+    d_rest = _cond_seat_dist(rest, rho_base, m.ravel(), ind_weight)
+    d_rest = np.einsum("gxk,x->gk", d_rest.reshape(len(g), len(x), -1), wx)
+    # tail[g, j] = P(rest wins >= j | G = g), with j >= len(rest) + 1 impossible
+    tail = np.concatenate([d_rest[:, ::-1].cumsum(axis=1)[:, ::-1],
+                           np.zeros((len(g), len(sw) + 1))], axis=1)
+    need = max(needed - holdover_d, 0)
+    j = np.clip(need - np.arange(len(sw) + 1), 0, None)
+    return float(np.clip(wg @ (d_sw * tail[:, j]).sum(axis=1), 0.0, 1.0))
+
+
+def implied_base_rho(races: list[Race], swing: set[str], rho_swing: float, target: float,
+                     **kw) -> float:
+    """rho_base in [0, min(rho_swing, 0.8)] matching target, or NaN if none does."""
+    hi = min(rho_swing, GH_RHO_MAX)
+    f = lambda r: control_prob_two_tier(races, swing, rho_swing, r, **kw) - target
+    grid = np.linspace(0.0, hi, 41)
+    vals = np.array([f(r) for r in grid])
+    for a, b, fa, fb in zip(grid[:-1], grid[1:], vals[:-1], vals[1:]):
+        if fa == 0.0:
+            return float(a)
+        if fa * fb < 0:
+            return brentq(f, a, b, xtol=1e-5)
+    return float(grid[-1]) if vals[-1] == 0.0 else np.nan
 
 
 def implied_rhos(races: list[Race], target: float, **kw) -> list[float]:
@@ -147,6 +206,8 @@ def main() -> None:
                     help="share of independent wins counted as Democratic caucus "
                          "(default: show 0 and 1)")
     ap.add_argument("--holdover-d", type=int, default=HOLDOVER_D)
+    ap.add_argument("--swing", default="MI,TX,OH,ME",
+                    help="comma-separated states whose pairs get a separate, higher rho")
     args = ap.parse_args()
 
     races = load_races()
@@ -165,6 +226,13 @@ def main() -> None:
             print(f"  {r:4.2f}   {control_prob(races, r, **kw):.4f}")
         for name, target in (("bid", bid), ("mid", mid), ("ask", ask)):
             print(f"  implied rho at {name} {target:.3f}: {_fmt(implied_rhos(races, target, **kw))}")
+
+        swing = {f"SENATE{s.strip().upper()}-26" for s in args.swing.split(",")}
+        print(f"  two tiers, swing = {args.swing}: rho among swing pairs -> rho for "
+              f"all other pairs that matches control at bid / mid / ask")
+        for rs in (0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95):
+            base = [implied_base_rho(races, swing, rs, t, **kw) for t in (bid, mid, ask)]
+            print(f"    {rs:4.2f} -> " + " / ".join("  none" if np.isnan(b) else f"{b:6.3f}" for b in base))
 
 
 if __name__ == "__main__":
