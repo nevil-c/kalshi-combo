@@ -79,6 +79,7 @@ class FakeClient:
             self.open.discard(path.rsplit("/", 1)[-1])
             return {}
         if method == "GET" and path == "/communications/quotes":
+            assert params.get("rfq_user_filter") == "self" and params.get("rfq_id")
             return {"quotes": [{"yes_bid_dollars": "0.10", "no_bid_dollars": "0.85"},
                                {"yes_bid_dollars": "0.11", "no_bid_dollars": "0"}]}
         raise AssertionError(f"unexpected call {method} {path}")

@@ -153,7 +153,9 @@ def run_wave(client, wave: list[tuple[Leg, ...]], cache: dict[str, str], cache_p
         log(f"  {len(opened)} RFQs open; waiting {wait:.0f}s for quotes")
         time.sleep(wait)
         for legs, ticker, rfq_id in opened:
-            quotes = client.get("/communications/quotes", rfq_id=rfq_id).get("quotes", [])
+            # Kalshi rejects a quote query unless it names the RFQ creator (403)
+            quotes = client.get("/communications/quotes", rfq_id=rfq_id,
+                                rfq_user_filter="self").get("quotes", [])
             yes = [float(q["yes_bid_dollars"]) for q in quotes if float(q.get("yes_bid_dollars") or 0) > 0]
             no = [float(q["no_bid_dollars"]) for q in quotes if float(q.get("no_bid_dollars") or 0) > 0]
             results.append({"legs": legs, "combo_ticker": ticker, "rfq_id": rfq_id,
