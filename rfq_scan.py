@@ -1,4 +1,4 @@
-"""Request market-maker quotes on every 3-leg Senate combo and price each with the engine.
+"""Request market-maker quotes on every Senate combo (3 legs by default) and price each with the engine.
 
 Dry run by default: reads public market data, enumerates combos, prices them,
 and writes the plan. Nothing is created and no RFQ is sent without --send.
@@ -20,6 +20,7 @@ is not calibrated anywhere in this repo, so the default is a placeholder.
 
     python rfq_scan.py                         # dry run, writes data/rfq/plan.csv
     python rfq_scan.py --send --max-combos 100 # one live wave
+    python rfq_scan.py --legs 2                # 2-leg combos instead
 """
 
 from __future__ import annotations
@@ -210,6 +211,7 @@ def _write_csv(path: Path, rows: list[dict]) -> None:
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--rho", type=float, default=0.3, help="engine rho (placeholder default)")
+    ap.add_argument("--legs", type=int, default=LEGS, help="legs per combo (Kalshi minimum 2)")
     ap.add_argument("--send", action="store_true", help="actually create combos and send RFQs")
     ap.add_argument("--env", default="prod", choices=["prod", "demo"])
     ap.add_argument("--max-combos", type=int, default=100, help="stop after this many combos")
@@ -219,7 +221,7 @@ def main() -> None:
     args = ap.parse_args()
 
     races = load_races()
-    combos = enumerate_combos(races)
+    combos = enumerate_combos(races, args.legs)
     # Most likely combos first: with the weekly creation limit below the full
     # universe, the near-zero combos (least informative on a 0.1c grid) go last.
     combos.sort(key=lambda legs: -engine_price(legs, args.rho))
@@ -229,7 +231,8 @@ def main() -> None:
     todo = combos[: args.max_combos]
     new_creations = sum(combo_key(c) not in cache for c in todo)
 
-    print(f"{len(races)} Senate races, {len(combos)} {LEGS}-leg combos; rho = {args.rho} "
+    print(f"{len(races)} Senate races, {sum(map(len, races.values()))} markets, "
+          f"{len(combos)} {args.legs}-leg combos; rho = {args.rho} "
           f"(placeholder unless you set it)")
     print(f"this run: {len(todo)} combos, {new_creations} new combo creations "
           f"({len(cache)} already created; weekly limit {WEEKLY_CREATION_LIMIT})")

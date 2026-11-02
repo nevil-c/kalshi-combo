@@ -32,6 +32,12 @@ def test_enumerates_one_market_per_race():
     assert len({combo_key(c) for c in combos}) == len(combos)
 
 
+def test_two_leg_combos():
+    combos = enumerate_combos(_races(), 2)
+    assert len(combos) == 2 * 2 + 2 * 3 + 2 * 2 + 2 * 3 + 2 * 2 + 3 * 2
+    assert all(len({l.event_ticker for l in c}) == 2 for c in combos)
+
+
 def test_rho_zero_is_product_of_leg_probs():
     legs = (_races()["SENATEAA-26"][0], _races()["SENATEBB-26"][1], _races()["SENATECC-26"][2])
     assert engine_price(legs, 0.0) == pytest.approx(0.3 * 0.4 * 0.1)
