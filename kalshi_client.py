@@ -78,7 +78,19 @@ class KalshiClient:
         return base64.b64encode(sig).decode()
 
     def request(self, method: str, path: str, params: dict | None = None,
-                body: dict | None = None) -> dict:
+                body: dict | None = None, retries: int = 5) -> dict:
+        """Signed request; backs off and retries on 429 (Kalshi sends no Retry-After)."""
+        for attempt in range(retries + 1):
+            try:
+                return self._request_once(method, path, params, body)
+            except KalshiError as exc:
+                if exc.status != 429 or attempt == retries:
+                    raise
+                time.sleep(0.25 * 2 ** attempt)
+        raise AssertionError("unreachable")
+
+    def _request_once(self, method: str, path: str, params: dict | None,
+                      body: dict | None) -> dict:
         method = method.upper()
         ts = str(int(time.time() * 1000))
         headers = {

@@ -5,3 +5,4 @@ __pycache__/
 freeze.log
 *.pem
 *.key
+data/rfq/plan.csv
