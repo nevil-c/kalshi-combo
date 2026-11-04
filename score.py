@@ -12,9 +12,6 @@ does, and YES once every leg has.
 
 Scores, on combos with a two-sided maker quote and a known outcome:
   Brier and log loss for the engine, the maker mid, and independence (rho = 0)
-Paper P&L, one contract each, held to settlement:
-  sell at the maker bid wherever the engine is below it, buy at the maker ask
-  wherever the engine is above it
 
 The combos share ~18 races and one national swing, so they are not independent
 trials: one election cannot establish skill however many combos score.
@@ -94,12 +91,6 @@ def score(df: pd.DataFrame, results: dict[str, str]) -> dict:
         p = two[name].to_numpy()
         out[f"brier_{name}"] = _brier(p, y) if len(two) else np.nan
         out[f"logloss_{name}"] = _log_loss(p, y) if len(two) else np.nan
-    sell = known[known.engine < known.maker_yes_bid]
-    buy = known[known.engine > known.maker_yes_ask]
-    pnl = np.concatenate([(sell.maker_yes_bid - sell.outcome).to_numpy(),
-                          (buy.outcome - buy.maker_yes_ask).to_numpy()])
-    out.update(trades=len(pnl), pnl=float(pnl.sum()) if len(pnl) else 0.0,
-               pnl_per_trade=float(pnl.mean()) if len(pnl) else np.nan)
     return out
 
 
@@ -126,8 +117,6 @@ def main() -> None:
             print("               brier   log loss   (lower is better)")
             for name in ("engine", "maker_mid", "independent"):
                 print(f"  {name:<12} {s['brier_' + name]:.4f}   {s['logloss_' + name]:.4f}")
-        print(f"  paper P&L: {s['trades']} trades, {s['pnl']:+.2f} per contract total"
-              + (f", {s['pnl_per_trade']:+.3f} each" if s["trades"] else ""))
 
 
 if __name__ == "__main__":
