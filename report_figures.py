@@ -86,8 +86,8 @@ def _legend(ax, c: dict, kinds) -> None:
 
 def accuracy(c: dict, rows: list[dict]):
     h = 4.5
-    fig, ax = _axes(c, (9, h), "Model and traders were almost level in the most likely case",
-                    "Forecast error on 195 combos, by how the two open races finish. The axis is zoomed in.")
+    fig, ax = _axes(c, (9, h), "Our model and the traders were almost level in the most likely case",
+                    "Average forecast error on 195 combos, for each way Alaska and Mississippi could finish. The axis is zoomed in.")
     _top(fig, 1.05, h, left=0.37, right=0.87, bottom=0.14)
     kinds = ("unrelated", "traders", "model")
     for i, r in enumerate(rows):
@@ -105,7 +105,8 @@ def accuracy(c: dict, rows: list[dict]):
     ax.set_xticks(np.arange(0.15, 0.1951, 0.01))
     ax.xaxis.set_major_formatter(lambda v, _: f"{v:.2f}")
     ax.grid(False, axis="y")
-    ax.set_xlabel("Brier score (lower is better)", color=c["ink2"], fontsize=10.5)
+    ax.text(1.02, 1.03, "Our model is:", transform=ax.transAxes, va="bottom", color=c["ink2"], fontsize=10)
+    ax.set_xlabel("Forecast error (lower is better)", color=c["ink2"], fontsize=10.5)
     _legend(ax, c, ("model", "traders", "unrelated"))
     return fig
 
@@ -113,7 +114,7 @@ def accuracy(c: dict, rows: list[dict]):
 def breakdown(c: dict, rows: list[dict]):
     h = 3.5
     fig, ax = _axes(c, (9, h), "The traders' lead comes from four states",
-                    "Forecast error by group of combos, assuming Democrats win Alaska and Mississippi.")
+                    "Average forecast error by type of combo, if Democrats win Alaska and Mississippi.")
     _top(fig, 1.05, h, left=0.37, right=0.97, bottom=0.18)
     for i, r in enumerate(rows):
         y = len(rows) - 1 - i
@@ -129,7 +130,7 @@ def breakdown(c: dict, rows: list[dict]):
     ax.set_xlim(0.03, 0.19)
     ax.xaxis.set_major_formatter(lambda v, _: f"{v:.2f}")
     ax.grid(False, axis="y")
-    ax.set_xlabel("Brier score (lower is better)", color=c["ink2"], fontsize=10.5)
+    ax.set_xlabel("Forecast error (lower is better)", color=c["ink2"], fontsize=10.5)
     _legend(ax, c, ("model", "traders"))
     return fig
 
@@ -137,8 +138,8 @@ def breakdown(c: dict, rows: list[dict]):
 def prices(c: dict, t: pd.DataFrame):
     h = 6.6
     gap, corr = 100 * (t.engine - t.maker_mid).abs().mean(), np.corrcoef(t.engine, t.maker_mid)[0, 1]
-    fig, ax = _axes(c, (6.9, h), "Model and trader prices mostly agreed",
-                    f"195 combos. Average gap {gap:.1f}¢, correlation {corr:.2f}.")
+    fig, ax = _axes(c, (6.9, h), "Our model and the traders usually gave similar prices",
+                    f"Each dot is one of the 195 combos. On average the two prices differed by {gap:.1f}¢.")
     _top(fig, 1.05, h, left=0.1, right=0.97, bottom=0.095)
     ax.spines["left"].set_visible(True)
     ax.spines["left"].set_color(c["axis"])
@@ -154,9 +155,9 @@ def prices(c: dict, t: pd.DataFrame):
     pct = lambda v, _: f"{v * 100:.0f}¢"
     ax.xaxis.set_major_formatter(pct)
     ax.yaxis.set_major_formatter(pct)
-    ax.set_xlabel("Model price", color=c["ink2"], fontsize=10.5)
-    ax.set_ylabel("Traders' midpoint", color=c["ink2"], fontsize=10.5)
-    handles = [plt.Line2D([], [], linestyle="none", marker="D", color=c["traders"], markersize=7, label="Both legs in MI, TX, OH or ME"),
+    ax.set_xlabel("Our model's price", color=c["ink2"], fontsize=10.5)
+    ax.set_ylabel("Traders' price (halfway between buy and sell)", color=c["ink2"], fontsize=10.5)
+    handles = [plt.Line2D([], [], linestyle="none", marker="D", color=c["traders"], markersize=7, label="Both picks in Michigan, Texas, Ohio or Maine"),
                plt.Line2D([], [], linestyle="none", marker="o", color=c["model"], markersize=7, label="All other combos")]
     ax.legend(handles=handles, loc="lower left", bbox_to_anchor=(0, 1.0), ncol=2, frameon=False, fontsize=10,
               labelcolor=c["ink2"], handletextpad=0.2, columnspacing=1.2, borderaxespad=0.2, borderpad=0)
@@ -237,11 +238,11 @@ def main() -> None:
     fetched = fetch_results({t for m in d.leg_markets for t in m.split("|")})
     results = {**read_results(ASSUMED), **fetched}
 
-    scenarios = [("Democrats win AK and MS (most likely)", score(d, results)),
-                 ("Democrats win AK, Republicans win MS", score(d, _with_open_races(fetched, "D", "R"))),
-                 ("Leaving out AK and MS combos", score(d[~d.leg_markets.str.contains("|".join(OPEN_RACES))], fetched)),
-                 ("Republicans win AK, Democrats win MS", score(d, _with_open_races(fetched, "R", "D"))),
-                 ("Republicans win AK and MS", score(d, _with_open_races(fetched, "R", "R")))]
+    scenarios = [("Democrats win both (most likely)", score(d, results)),
+                 ("Democrats win Alaska only", score(d, _with_open_races(fetched, "D", "R"))),
+                 ("Leaving those two races out", score(d[~d.leg_markets.str.contains("|".join(OPEN_RACES))], fetched)),
+                 ("Democrats win Mississippi only", score(d, _with_open_races(fetched, "R", "D"))),
+                 ("Republicans win both", score(d, _with_open_races(fetched, "R", "R")))]
     accuracy_rows = [{"label": name, **s} for name, s in scenarios]
 
     t = d[d.maker_mid.notna()].copy()
@@ -250,8 +251,8 @@ def main() -> None:
     four = states.map(lambda s: s <= FOUR_STATES)
     same = t.leg_markets.map(lambda s: len({x.endswith("-R") for x in s.split("|")}) == 1)
     brier = lambda x: {"model": ((x.engine - x.y) ** 2).mean(), "traders": ((x.maker_mid - x.y) ** 2).mean()}
-    groups = [(f"Both legs in MI, TX, OH or ME ({four.sum()})", t[four]), (f"All other combos ({(~four).sum()})", t[~four]),
-              (f"Same party on both legs ({same.sum()})", t[same]), (f"Mixed parties ({(~same).sum()})", t[~same])]
+    groups = [(f"Both picks in Michigan, Texas, Ohio or Maine ({four.sum()})", t[four]), (f"All other combos ({(~four).sum()})", t[~four]),
+              (f"Both picks from the same party ({same.sum()})", t[same]), (f"Picks from different parties ({(~same).sum()})", t[~same])]
     breakdown_rows = [{"label": name, **brier(x)} for name, x in groups]
 
     prob = {}

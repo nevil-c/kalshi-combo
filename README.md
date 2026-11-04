@@ -1,22 +1,72 @@
-# Kalshi combo pricer — 2026 midterms
+# Can a simple model price election bets as well as professional traders?
 
-Prices Kalshi all-legs-must-win combos with a one-factor Gaussian copula and
-backs out the rho implied by `KXBALANCEPOWERCOMBO` (House x Senate control)
-against the separate `CONTROLH-2026` / `CONTROLS-2026` markets.
+I tested this on the 2026 US Senate elections, using real prices from Kalshi, a US exchange where people trade on real-world events.
 
-# Report: model vs Kalshi market makers
+**The short answer is almost.** Across 195 bets, the model's forecasts were about as accurate as the traders' (0.2% worse). They were also 3.5% better than a simple approach that treats each race as unrelated to the others. Being accurate doesn't mean the model could make money, and [one election can't prove much](#what-this-doesnt-prove).
 
-**Can a model with one correlation number price Senate combos as accurately as
-Kalshi's market makers?** Almost. On 195 two-leg combos it tied them for practical
-purposes (0.2% worse on Brier score) and beat a no-correlation baseline by 3.5%.
+> **These results aren't final.** 16 of the 18 races in the test have officially settled. Alaska and Mississippi haven't, so the main numbers here assume Democrats win both. On Nov 4, Kalshi's prices gave Democrats a 92% chance in Alaska and 93% in Mississippi.
 
-> **Provisional.** 16 of the 18 races in the test have settled. Alaska and
-> Mississippi are still open, with Democrats priced at 92% and 93% on Nov 4. The
-> headline assumes Democrats win both. Other cases are in the table below.
+## The idea
 
-## Process
+A Kalshi contract pays &#36;1 if something happens. If it costs 70¢, the market sees about a 70% chance.
 
-**1. Model.** Each race's own Kalshi price $p_i$, plus one number $\rho$ for how much races move together. This is a one-factor Gaussian copula, where $M$ is the shared national factor:
+A **combo** is a bet on several things at once, and it pays only if all of them happen. Take "Democrats win both Michigan and Texas". You might expect to price it by multiplying the two chances, but that only works if the races have nothing to do with each other. In reality, a good night for a party nationally tends to help it everywhere.
+
+So the price depends on how much races move together:
+
+| "Democrats win both Michigan and Texas" | Price on Nov 2 |
+| --- | --- |
+| Michigan alone | 77.5¢ |
+| Texas alone | 72.5¢ |
+| Combo, if the two races were unrelated | 56¢ |
+| Combo, according to my model | 60¢ |
+| Combo, according to Kalshi's traders | 74¢ |
+
+My model takes each race's price and adds one number for how much races move together. That number is called **correlation**: 0 means races are unrelated, and 1 means they always move as one. The model used 0.38, which I worked out from Kalshi's price on which party would control the Senate.
+
+## What I did
+
+1. **Built the model** to price any combo from its race prices and that one correlation number.
+2. **Asked the traders for prices.** On Nov 2, the day before the election, I requested prices on all 754 possible pairs of picks across 18 Senate races. 652 got a reply, and 195 got both a price to buy and a price to sell. Those 195 are the ones I could compare fairly. I never bought or sold anything.
+3. **Locked everything in** before polls opened on election day. The prices and the accuracy calculation were saved in a time-stamped record, so they couldn't be changed after the results came in.
+4. **Scored the forecasts** once the results came in. For each combo, forecast error is the gap between the forecast and what happened, squared, then averaged across combos. A perfect forecaster scores 0, and always saying 50% scores 0.25. For the traders, I used the price halfway between their buy and sell prices.
+
+## What I found
+
+**The model and the traders nearly tied.** If Democrats win both remaining races, as expected, the model scores 0.1609 and the traders 0.1606. If Republicans win Alaska, the traders' lead grows to about 5%. The traders come out ahead in every case, and treating races as unrelated comes last in every case.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/figures/accuracy-dark.svg">
+  <img src="docs/figures/accuracy-light.svg" alt="Dot chart of average forecast error for my model, Kalshi's traders and treating races as unrelated, for each way Alaska and Mississippi could finish. If Democrats win both, the model scores 0.1609, the traders 0.1606 and the unrelated approach 0.1667. The traders lead in every case and the unrelated approach is worst in every case.">
+</picture>
+
+**The traders' lead comes from four states.** They treated Michigan, Texas, Ohio and Maine as moving almost together. Democrats won all four, so the traders were right about those. On the other 180 combos, the model was slightly ahead.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/figures/breakdown-dark.svg">
+  <img src="docs/figures/breakdown-light.svg" alt="Dot chart of average forecast error for my model and the traders by type of combo. Both picks in Michigan, Texas, Ohio or Maine: model 0.084, traders 0.058. All other combos: model 0.167, traders 0.169. Both picks from the same party: model 0.163, traders 0.165. Picks from different parties: model 0.159, traders 0.155.">
+</picture>
+
+**The two usually gave similar prices.** On average they differed by 4.1¢, and the model's forecast was closer to the actual result on 99 combos against the traders' 96.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/figures/prices-dark.svg">
+  <img src="docs/figures/prices-light.svg" alt="Scatter chart of my model's price against the traders' price for 195 combos. The dots sit close to the diagonal line where the two prices are equal, differing by 4.1 cents on average. Combos with two Democratic picks in Michigan, Texas, Ohio or Maine sit furthest above the line.">
+</picture>
+
+## What this doesn't prove
+
+- **This is one election.** All these combos share the same 18 races and the same national mood, so they aren't 195 separate tests. Either side could have been lucky.
+- **Accurate doesn't mean profitable.** The traders' buy and sell prices were typically 34¢ apart, while the model and the traders differed by about 4¢. Anyone trading would pay far more in that gap than the model's price difference could earn back.
+- **The model isn't fully independent.** Its race prices and its correlation number both came from Kalshi.
+
+---
+
+*You can stop here. The rest is for readers who want the math or the code.*
+
+## Technical details
+
+**Model.** A one-factor Gaussian copula, using each race's price $p_i$ and a common correlation $\rho$, where $M$ is the shared national factor:
 
 ```math
 Z_i = \sqrt{\rho}\,M + \sqrt{1-\rho}\,\varepsilon_i, \qquad M,\ \varepsilon_i \sim \mathcal{N}(0,1)
@@ -34,7 +84,7 @@ P(\text{all legs win}) = \int_{-\infty}^{\infty} \prod_i P(\text{leg } i \text{ 
 
 Republican legs load on $M$ with the opposite sign, so a Democratic win in one state and a Republican win in another are negatively related.
 
-**2. Correlation.** Senate control depends on the individual races, so `senate_rho.py` works out the distribution of Democratic seats $S$ among the 35 races up in 2026. Democrats hold 34 seats that aren't up and need 51 for control, so they need 17 of the 35. The estimate $\hat{\rho}$ is the value that matches Kalshi's control price:
+**Estimating correlation.** Senate control depends on the individual races, so `senate_rho.py` works out the distribution of Democratic seats $S$ among the 35 races up in 2026. Democrats hold 34 seats that aren't up and need 51 for control, so they need 17 of the 35. The estimate $\hat{\rho}$ is the value that matches Kalshi's control price:
 
 ```math
 P(\text{control} \mid \rho) = \int_{-\infty}^{\infty} P(S \ge 17 \mid M=m)\,\phi(m)\,dm, \qquad P(\text{control} \mid \hat{\rho}) = \text{Kalshi's price}
@@ -47,56 +97,25 @@ That gave 0.34 if independents don't count as Democratic seats and 0.42 if they 
   <img src="docs/figures/control-light.svg" alt="Line chart of the model's chance of Democratic Senate control falling as correlation rises. The lines cross Kalshi's 74 to 75 cent price at a correlation of 0.34 with independents not counted and 0.42 with them counted.">
 </picture>
 
-**3. Quotes.** On Nov 2, `rfq_scan.py` requested quotes on all 754 two-leg combos of the 18 Senate races in Kalshi's combo collection. 652 got a reply, and 195 got both a bid and an ask. No quote was accepted.
-
-**4. Lock.** The model prices, the quotes and the accuracy calculation were committed and tagged `preregistered-2026-11-02` before polls opened.
-
-**5. Score.** `score.py` compares each forecast $f_j$ with the outcome $y_j \in \{0, 1\}$ on the 195 two-sided combos. Lower is better on both measures:
+**Scoring.** Each forecast $f_j$ is compared with the outcome $y_j \in \{0, 1\}$. "Forecast error" above is the Brier score:
 
 ```math
 \text{Brier} = \frac{1}{N}\sum_{j=1}^{N} (f_j - y_j)^2, \qquad \text{Log loss} = -\frac{1}{N}\sum_{j=1}^{N} \left[ y_j \ln f_j + (1-y_j)\ln(1-f_j) \right]
 ```
 
-The market makers' forecast is their bid-ask midpoint, $f_j = (b_j + a_j)/2$. The baseline treats races as unrelated ($\rho = 0$), so $f_j$ is the product of the leg prices.
+The traders' forecast is their bid-ask midpoint, $f_j = (b_j + a_j)/2$. The baseline sets $\rho = 0$, so $f_j$ is the product of the leg prices.
 
-## Results
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/figures/accuracy-dark.svg">
-  <img src="docs/figures/accuracy-light.svg" alt="Dot plot of Brier scores for the model, the traders and the unrelated-races baseline in five scenarios. In the most likely scenario the model scores 0.1609, the traders 0.1606 and the baseline 0.1667. The traders lead in every scenario, and the baseline is worst in every scenario.">
-</picture>
-
-<details>
-<summary>All accuracy numbers</summary>
-
-| Alaska and Mississippi | Combos | Model Brier | Makers Brier | Baseline Brier | Model log loss | Makers log loss | Baseline log loss | Model vs makers (Brier) |
+| Alaska and Mississippi | Combos | Model Brier | Traders Brier | Baseline Brier | Model log loss | Traders log loss | Baseline log loss | Model vs traders (Brier) |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | **Democrats win both (most likely)** | 195 | **0.1609** | **0.1606** | 0.1667 | 0.5008 | 0.4994 | 0.5122 | **0.2% worse** |
-| Democrats win AK, Republicans win MS | 195 | 0.1580 | 0.1573 | 0.1628 | 0.4950 | 0.4933 | 0.5044 | 0.4% worse |
-| Combos with either race left out | 156 | 0.1580 | 0.1529 | 0.1636 | 0.4943 | 0.4831 | 0.5055 | 3.3% worse |
-| Republicans win AK, Democrats win MS | 195 | 0.1881 | 0.1790 | 0.1913 | 0.5593 | 0.5402 | 0.5650 | 5.1% worse |
+| Democrats win Alaska only | 195 | 0.1580 | 0.1573 | 0.1628 | 0.4950 | 0.4933 | 0.5044 | 0.4% worse |
+| Leaving those two races out | 156 | 0.1580 | 0.1529 | 0.1636 | 0.4943 | 0.4831 | 0.5055 | 3.3% worse |
+| Democrats win Mississippi only | 195 | 0.1881 | 0.1790 | 0.1913 | 0.5593 | 0.5402 | 0.5650 | 5.1% worse |
 | Republicans win both | 195 | 0.1852 | 0.1757 | 0.1874 | 0.5536 | 0.5340 | 0.5572 | 5.4% worse |
 
-</details>
+**How much correlation among swing states?** The traders' quotes implied $\rho \approx 0.9$ among Michigan, Texas, Ohio and Maine. Senate control can't rule that out, because a value that high for those four still fits the control price. Across all nine competitive states, it does rule out anything above about 0.65 (independents not counted).
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/figures/breakdown-dark.svg">
-  <img src="docs/figures/breakdown-light.svg" alt="Dot plot of Brier scores for the model and traders by group. Both legs in Michigan, Texas, Ohio or Maine: model 0.084, traders 0.058. All other combos: model 0.167, traders 0.169. Same party on both legs: model 0.163, traders 0.165. Mixed parties: model 0.159, traders 0.155.">
-</picture>
-
-The model's forecast was closer to the outcome on 99 combos and the makers' on 96.
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/figures/prices-dark.svg">
-  <img src="docs/figures/prices-light.svg" alt="Scatter plot of model price against the traders' midpoint for 195 combos, clustered close to the diagonal, with an average gap of 4.1 cents and a correlation of 0.97. Same-party combos in Michigan, Texas, Ohio and Maine sit above the diagonal.">
-</picture>
-
-## What it showed
-
-- **One correlation number gets close.** The makers lead in every scenario, but only narrowly in the most likely one. The model beats the baseline in all of them.
-- **The makers' lead comes from four states.** They priced Michigan, Texas, Ohio and Maine as moving nearly in lockstep, at $\rho \approx 0.9$, and Democrats won all four. The model was slightly better on the other 180 combos.
-- **Senate control can't settle that disagreement.** A $\rho$ of 0.9 or more among those four states still fits the control price. Across all nine competitive states, it rules out anything above about 0.65 (independents not counted).
-- **Looking back, 0.38 was probably low.** This wasn't part of the locked test, and it is weak evidence. It compares how likely the actual result was at each $\rho$:
+**Looking back.** This wasn't part of the locked test, and it is weak evidence. It compares how likely the actual result was at each $\rho$:
 
 ```math
 R(\rho) = \frac{P(\text{actual 18-race result} \mid \rho)}{P(\text{actual 18-race result} \mid \rho = 0.38)}
@@ -107,102 +126,39 @@ R(\rho) = \frac{P(\text{actual 18-race result} \mid \rho)}{P(\text{actual 18-rac
   <img src="docs/figures/fit-light.svg" alt="Line chart of how likely the actual result was at each correlation, relative to 0.38. It peaks at 1.46 times at a correlation of 0.73 and falls to 0.91 times at the traders' roughly 0.9.">
 </picture>
 
-## Limits
+**Numerical integration.** Gauss-Hermite (64 nodes) for $\rho \le 0.8$. Above that, the conditional leg probabilities become near-steps in $M$ and Hermite nodes miss them (error reaches 0.04 at $\rho = 0.999$), so it switches to piecewise Gauss-Legendre with breakpoints at each step. Both agree with the exact bivariate normal to within $10^{-7}$ across $\rho \in [0, 0.999]$. One common factor can't make same-side legs negatively correlated, so $\rho \ge 0$.
 
-- **One election.** The combos share about 18 races and one national mood, so they are
-  far from 195 independent tests. This can't establish skill for either side.
-- **This measures accuracy, not profit.** The median bid-ask gap was 34¢ and the model
-  and makers differed by 4.1¢ on average, so matching the makers' accuracy doesn't
-  make a combo profitable to trade.
-- **Not an independent view.** The race prices and rho both came from Kalshi.
-- **One rho for every pair is crude.** Regional links would need a model with more
-  factors.
+## Running the code
 
-## Reproduce
-
-```
-python senate_rho.py                                # rho from Senate control
-python rfq_scan.py --legs 2 --rho 0.38              # dry run; --send needs an API key
-python score.py --results data/rfq/assumed_ak_ms.csv   # headline scenario
-python report_figures.py                            # redraw the charts
-```
-
-`data/rfq/assumed_ak_ms.csv` holds the assumed Alaska and Mississippi results. Once
-those races settle, plain `python score.py` gives the final result. Until then its
-output is skewed, because a combo with an open leg is only scored if its other leg
-has already lost.
-
-# Project
-
-Everything is read-only market data except `rfq_scan.py --send`, which
-creates combo markets and opens RFQs (signed with your API key from
-environment variables). It never accepts a quote, and it deletes every RFQ it
-opens. Nothing here places orders.
-
-| file | what |
-| --- | --- |
-| `pricing.py` | `combo_prob(leg_probs, sides, rho)` |
-| `calibrate.py` | `implied_rho(...)`, `calibrate_series(df)`, CLI |
-| `compare.py` | one snapshot: Kalshi combo bid/ask/mid vs engine at the same leg prices (`--rho` or fitted) |
-| `parse.py` | `load_snapshots()` -> `ticker, time, bid, ask, mid` |
-| `collector.py` | saves `data/snapshot_*.json` |
-| `kalshi_client.py` | signed API client (key from env vars) |
-| `rfq_scan.py` | RFQ every Senate combo (`--legs 2/3`), record maker quotes vs engine in `data/rfq/` |
-| `senate_rho.py` | cross-state rho implied by Senate control; two-tier swing-group check |
-| `score.py` | after the election: Brier / log loss for engine vs maker mid and baseline |
-| `report_figures.py` | draws this report's charts into `docs/figures` |
-
-## Setup (Python 3.12)
-
-The venv lives at a short path because deep project paths can exceed
-Windows' 260-character limit during `pip install`.
+The prices and accuracy calculation are locked at the git tag `preregistered-2026-11-02`, created before polls opened.
 
 ```
 py -3.12 -m venv %USERPROFILE%\.venvs\kalshi-combo
 %USERPROFILE%\.venvs\kalshi-combo\Scripts\pip install -r requirements.txt
-```
 
-## Run
-
-```
-python collector.py                         # one snapshot
-python collector.py --loop --interval 3600  # hourly
-python calibrate.py [--weighted]            # latest rho + per-cell residuals
 python -m pytest -q
+python score.py --results data/rfq/assumed_ak_ms.csv   # main result, assuming Democrats win AK and MS
+python report_figures.py                               # redraw the charts
+python senate_rho.py                                   # correlation from Senate control (uses live prices)
+python rfq_scan.py --legs 2 --rho 0.38                 # dry run; --send needs an API key
 ```
 
-Snapshots are taken on demand with `python collector.py`. (An hourly Task
-Scheduler job ran from Oct 28 to Nov 2 and has been removed; `--loop` still
-works if a series is ever needed.)
+The venv sits at a short path because deep project paths can exceed Windows' 260-character limit during `pip install`.
 
-## Model notes
+Once Alaska and Mississippi settle, plain `python score.py` gives the final result. Until then its output is skewed, because a combo with an undecided leg is only scored if its other leg has already lost.
 
-- $Z_i = \sqrt{\rho}\,M + \sqrt{1-\rho}\,\varepsilon_i$; a leg resolves YES when $Z_i < \Phi^{-1}(p_i)$.
-- Gauss-Hermite (64 nodes) for $\rho \le 0.8$. Above that the conditional leg
-  probabilities become near-steps in M and Hermite nodes miss them (error
-  reaches 0.04 at $\rho = 0.999$), so it switches to piecewise Gauss-Legendre
-  with breakpoints at each step. Both agree with the exact bivariate normal
-  to within $10^{-7}$ across $\rho \in [0, 0.999]$.
-- $\rho \ge 0$ only (one common factor cannot make legs negatively correlated).
-- `calibrate.py` prints `cell_rho`, the rho that fits each cell alone. A wide
-  spread across cells means one rho can't price all four cells; widen bid/ask
-  accordingly.
+Everything is read-only market data except `rfq_scan.py --send`, which creates combo markets and opens requests for quotes, signed with your API key from environment variables. It never accepts a quote, and it deletes every request it opens. Nothing here places orders.
 
-## Freezing prices (by Nov 1)
-
-The one-time Task Scheduler job `KalshiComboFreeze` runs `freeze.ps1` at
-2026-11-01 23:30 local (or as soon as the PC wakes after that). It commits
-everything in `data/`, creates the annotated tag `prices-frozen-2026-11-01`,
-and pushes `main` and the tag to GitHub (`origin`). If the tag already exists
-(for example, the push failed because the PC was offline), it skips straight to
-retrying the push. Output goes to `freeze.log`.
-
-Check it afterwards with `git tag -n1`, `git ls-remote --tags origin`, or
-`Get-Content freeze.log`; run it (or retry the push) by hand with:
-
-```
-powershell -ExecutionPolicy Bypass -File freeze.ps1 -Name <name> -Email <email>
-```
-
-The collector keeps adding snapshots after the freeze; the tag marks the
-frozen set.
+| File | What it does |
+| --- | --- |
+| `pricing.py` | Prices a combo: `combo_prob(leg_probs, sides, rho)` |
+| `senate_rho.py` | Correlation implied by Senate control, including the swing-state check |
+| `rfq_scan.py` | Requests quotes on every Senate combo and records them against the model in `data/rfq/` |
+| `score.py` | Brier score and log loss for the model, traders and baseline |
+| `report_figures.py` | Draws this report's charts into `docs/figures` |
+| `kalshi_client.py` | Signed Kalshi API client, with keys read from environment variables |
+| `calibrate.py` | Correlation implied by the House and Senate control combo |
+| `compare.py` | One snapshot: Kalshi combo bid, ask and midpoint against the model at the same leg prices |
+| `collector.py` | Saves market snapshots to `data/snapshot_*.json` |
+| `parse.py` | Loads snapshots into a table of `ticker, time, bid, ask, mid` |
+| `freeze.ps1` | Commits `data/`, tags it and pushes it, used for the Nov 1 tag `prices-frozen-2026-11-01` |
