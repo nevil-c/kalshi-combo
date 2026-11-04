@@ -16,23 +16,58 @@ purposes (0.2% worse on Brier score) and beat a no-correlation baseline by 3.5%.
 
 ## Process
 
-1. **Model.** A one-factor Gaussian copula: each race's own Kalshi price, plus one
-   number (rho) for how much races move together.
-2. **Correlation.** Senate control depends on the individual races, so
-   `senate_rho.py` finds the rho at which the implied seat count across all 35 races
-   matches Kalshi's Senate control price. That gave 0.34 if independents don't count
-   as Democratic seats and 0.42 if they do. The test used 0.38.
-3. **Quotes.** On Nov 2, `rfq_scan.py` requested quotes on all 754 two-leg combos of
-   the 18 Senate races in Kalshi's combo collection. 652 got a reply, and 195 got
-   both a bid and an ask. No quote was accepted.
-4. **Lock.** The model prices, the quotes and the accuracy calculation were committed
-   and tagged `preregistered-2026-11-02` before polls opened.
-5. **Score.** `score.py` compares each forecast with the outcome on the 195 two-sided
-   combos, using Brier score and log loss (lower is better). Market makers are
-   represented by their bid-ask midpoint, and the baseline treats races as unrelated
-   (rho = 0).
+**1. Model.** Each race's own Kalshi price $p_i$, plus one number $\rho$ for how much races move together. This is a one-factor Gaussian copula, where $M$ is the shared national factor:
+
+```math
+Z_i = \sqrt{\rho}\,M + \sqrt{1-\rho}\,\varepsilon_i, \qquad M,\ \varepsilon_i \sim \mathcal{N}(0,1)
+```
+
+A leg wins when $Z_i < \Phi^{-1}(p_i)$, so given $M$ the legs are independent:
+
+```math
+P(\text{leg } i \text{ wins} \mid M) = \Phi\!\left(\frac{\Phi^{-1}(p_i) - \sqrt{\rho}\,M}{\sqrt{1-\rho}}\right)
+```
+
+```math
+P(\text{all legs win}) = \int_{-\infty}^{\infty} \prod_i P(\text{leg } i \text{ wins} \mid M=m)\,\phi(m)\,dm
+```
+
+Republican legs load on $M$ with the opposite sign, so a Democratic win in one state and a Republican win in another are negatively related.
+
+**2. Correlation.** Senate control depends on the individual races, so `senate_rho.py` works out the distribution of Democratic seats $S$ among the 35 races up in 2026. Democrats hold 34 seats that aren't up and need 51 for control, so they need 17 of the 35. The estimate $\hat{\rho}$ is the value that matches Kalshi's control price:
+
+```math
+P(\text{control} \mid \rho) = \int_{-\infty}^{\infty} P(S \ge 17 \mid M=m)\,\phi(m)\,dm, \qquad P(\text{control} \mid \hat{\rho}) = \text{Kalshi's price}
+```
+
+That gave 0.34 if independents don't count as Democratic seats and 0.42 if they do. The test used 0.38.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/figures/control-dark.svg">
+  <img src="docs/figures/control-light.svg" alt="Line chart of the model's chance of Democratic Senate control falling as correlation rises. The lines cross Kalshi's 74 to 75 cent price at a correlation of 0.34 with independents not counted and 0.42 with them counted.">
+</picture>
+
+**3. Quotes.** On Nov 2, `rfq_scan.py` requested quotes on all 754 two-leg combos of the 18 Senate races in Kalshi's combo collection. 652 got a reply, and 195 got both a bid and an ask. No quote was accepted.
+
+**4. Lock.** The model prices, the quotes and the accuracy calculation were committed and tagged `preregistered-2026-11-02` before polls opened.
+
+**5. Score.** `score.py` compares each forecast $f_j$ with the outcome $y_j \in \{0, 1\}$ on the 195 two-sided combos. Lower is better on both measures:
+
+```math
+\text{Brier} = \frac{1}{N}\sum_{j=1}^{N} (f_j - y_j)^2, \qquad \text{Log loss} = -\frac{1}{N}\sum_{j=1}^{N} \left[ y_j \ln f_j + (1-y_j)\ln(1-f_j) \right]
+```
+
+The market makers' forecast is their bid-ask midpoint, $f_j = (b_j + a_j)/2$. The baseline treats races as unrelated ($\rho = 0$), so $f_j$ is the product of the leg prices.
 
 ## Results
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/figures/accuracy-dark.svg">
+  <img src="docs/figures/accuracy-light.svg" alt="Dot plot of Brier scores for the model, the traders and the unrelated-races baseline in five scenarios. In the most likely scenario the model scores 0.1609, the traders 0.1606 and the baseline 0.1667. The traders lead in every scenario, and the baseline is worst in every scenario.">
+</picture>
+
+<details>
+<summary>All accuracy numbers</summary>
 
 | Alaska and Mississippi | Combos | Model Brier | Makers Brier | Baseline Brier | Model log loss | Makers log loss | Baseline log loss | Model vs makers (Brier) |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -42,30 +77,35 @@ purposes (0.2% worse on Brier score) and beat a no-correlation baseline by 3.5%.
 | Republicans win AK, Democrats win MS | 195 | 0.1881 | 0.1790 | 0.1913 | 0.5593 | 0.5402 | 0.5650 | 5.1% worse |
 | Republicans win both | 195 | 0.1852 | 0.1757 | 0.1874 | 0.5536 | 0.5340 | 0.5572 | 5.4% worse |
 
-Breakdown, assuming Democrats win both open races:
+</details>
 
-| Combos | Number | Model Brier | Makers Brier |
-| --- | --- | --- | --- |
-| Both legs in Michigan, Texas, Ohio or Maine | 15 | 0.0842 | **0.0577** |
-| All others | 180 | **0.1673** | 0.1692 |
-| Same party on both legs | 110 | **0.1627** | 0.1647 |
-| Mixed parties | 85 | 0.1586 | **0.1553** |
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/figures/breakdown-dark.svg">
+  <img src="docs/figures/breakdown-light.svg" alt="Dot plot of Brier scores for the model and traders by group. Both legs in Michigan, Texas, Ohio or Maine: model 0.084, traders 0.058. All other combos: model 0.167, traders 0.169. Same party on both legs: model 0.163, traders 0.165. Mixed parties: model 0.159, traders 0.155.">
+</picture>
 
 The model's forecast was closer to the outcome on 99 combos and the makers' on 96.
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/figures/prices-dark.svg">
+  <img src="docs/figures/prices-light.svg" alt="Scatter plot of model price against the traders' midpoint for 195 combos, clustered close to the diagonal, with an average gap of 4.1 cents and a correlation of 0.97. Same-party combos in Michigan, Texas, Ohio and Maine sit above the diagonal.">
+</picture>
+
 ## What it showed
 
-- **One correlation number gets close.** The makers lead in every scenario, but only
-  narrowly in the most likely one. The model beats the baseline in all of them.
-- **The makers' lead comes from four states.** They priced Michigan, Texas, Ohio and
-  Maine as moving nearly in lockstep, at a rho of about 0.9, and Democrats won all
-  four. The model was slightly better on the other 180 combos.
-- **Senate control can't settle that disagreement.** A rho of 0.9 or more among those
-  four states still fits the control price. Across all nine competitive states, it
-  rules out anything above about 0.65 (independents not counted).
-- **Looking back, 0.38 was probably low.** The actual 18-race result is most likely at
-  a rho of 0.73, but only 1.46 times as likely as at 0.38. At 0.9 it is 0.91 times as
-  likely. This wasn't part of the locked test, and it is weak evidence.
+- **One correlation number gets close.** The makers lead in every scenario, but only narrowly in the most likely one. The model beats the baseline in all of them.
+- **The makers' lead comes from four states.** They priced Michigan, Texas, Ohio and Maine as moving nearly in lockstep, at $\rho \approx 0.9$, and Democrats won all four. The model was slightly better on the other 180 combos.
+- **Senate control can't settle that disagreement.** A $\rho$ of 0.9 or more among those four states still fits the control price. Across all nine competitive states, it rules out anything above about 0.65 (independents not counted).
+- **Looking back, 0.38 was probably low.** This wasn't part of the locked test, and it is weak evidence. It compares how likely the actual result was at each $\rho$:
+
+```math
+R(\rho) = \frac{P(\text{actual 18-race result} \mid \rho)}{P(\text{actual 18-race result} \mid \rho = 0.38)}
+```
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/figures/fit-dark.svg">
+  <img src="docs/figures/fit-light.svg" alt="Line chart of how likely the actual result was at each correlation, relative to 0.38. It peaks at 1.46 times at a correlation of 0.73 and falls to 0.91 times at the traders' roughly 0.9.">
+</picture>
 
 ## Limits
 
@@ -84,6 +124,7 @@ The model's forecast was closer to the outcome on 99 combos and the makers' on 9
 python senate_rho.py                                # rho from Senate control
 python rfq_scan.py --legs 2 --rho 0.38              # dry run; --send needs an API key
 python score.py --results data/rfq/assumed_ak_ms.csv   # headline scenario
+python report_figures.py                            # redraw the charts
 ```
 
 `data/rfq/assumed_ak_ms.csv` holds the assumed Alaska and Mississippi results. Once
@@ -109,6 +150,7 @@ opens. Nothing here places orders.
 | `rfq_scan.py` | RFQ every Senate combo (`--legs 2/3`), record maker quotes vs engine in `data/rfq/` |
 | `senate_rho.py` | cross-state rho implied by Senate control; two-tier swing-group check |
 | `score.py` | after the election: Brier / log loss for engine vs maker mid and baseline |
+| `report_figures.py` | draws this report's charts into `docs/figures` |
 
 ## Setup (Python 3.12)
 
@@ -135,13 +177,13 @@ works if a series is ever needed.)
 
 ## Model notes
 
-- Z_i = sqrt(rho)·M + sqrt(1-rho)·e_i; leg YES when Z_i < Phi^-1(p_i).
-- Gauss-Hermite (64 nodes) for rho <= 0.8. Above that the conditional leg
+- $Z_i = \sqrt{\rho}\,M + \sqrt{1-\rho}\,\varepsilon_i$; a leg resolves YES when $Z_i < \Phi^{-1}(p_i)$.
+- Gauss-Hermite (64 nodes) for $\rho \le 0.8$. Above that the conditional leg
   probabilities become near-steps in M and Hermite nodes miss them (error
-  reaches 0.04 at rho = 0.999), so it switches to piecewise Gauss-Legendre
+  reaches 0.04 at $\rho = 0.999$), so it switches to piecewise Gauss-Legendre
   with breakpoints at each step. Both agree with the exact bivariate normal
-  to < 1e-7 across rho in [0, 0.999].
-- rho >= 0 only (one common factor cannot make legs negatively correlated).
+  to within $10^{-7}$ across $\rho \in [0, 0.999]$.
+- $\rho \ge 0$ only (one common factor cannot make legs negatively correlated).
 - `calibrate.py` prints `cell_rho`, the rho that fits each cell alone. A wide
   spread across cells means one rho can't price all four cells; widen bid/ask
   accordingly.

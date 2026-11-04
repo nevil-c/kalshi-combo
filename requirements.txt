@@ -3,3 +3,4 @@ scipy>=1.11
 pandas>=2.1
 pytest>=8
 cryptography>=42
+matplotlib>=3.8
